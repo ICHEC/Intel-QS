@@ -52,10 +52,10 @@ class GateCache {
     /**
      * @brief Initialise the gate cache with PauliX,Y,Z and H up to a given sqrt depth
      * 
-     * @param sim The simulator object
+     * @param qReg The QubitRegister object
      * @param sqrt_depth The depth to which calculate sqrt matrices and their respective adjoints
      */
-    void initCache(SimulatorType& sim, std::size_t sqrt_depth){
+    void initCache(QubitRegister& qReg, const std::size_t sqrt_depth){
         // If we do not have a sufficient circuit depth, clear and rebuild up to given depth.
 
         if(cache_depth < sqrt_depth ){
@@ -87,7 +87,7 @@ class GateCache {
      * @param gate Gate matrix
      * @param max_depth Depth of calculations for sqrt and associate adjoints
      */
-    void addToCache(SimulatorType& sim, const std::string gateLabel, const GateType& gate, std::size_t max_depth){
+    void addToCache(QubitRegister& qReg, const std::string gateLabel, const GateType& gate, std::size_t max_depth){
         if(max_depth <= cache_depth && gateCacheMap.find(gateLabel) != gateCacheMap.end() ){
             return;
         }
@@ -132,7 +132,7 @@ class GateCache {
     }
     constexpr GateType construct_hadamard(){
         GateType h;
-        decltype(h(0,0)) f = 1. / std::sqrt(2.);
+        decltype(std::declval<Type>(real(h(0,0)))) f = 1. / std::sqrt(2.);
         h(0, 0) = h(0, 1) = h(1, 0) = Type(f, 0.);
         h(1, 1) = Type(-f, 0.);
         return h;

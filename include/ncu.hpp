@@ -7,18 +7,19 @@
  * @date 2020-06-01
  */
 
-#ifndef QNLP_NCU
-#define QNLP_NCU
+#ifndef NCU_H
+#define NCU_H
 
-#include <unordered_map>
 #include <complex>
-#include <cassert>
-#include <utility>
 #include <vector>
 #include <iostream>
 
 #include <GateCache.hpp>
 #include <mat_ops.hpp>
+
+#include <qureg.hpp>
+
+namespace ncu {
 
 /**
  * @brief Class definition for applying n-qubit controlled unitary operations.
@@ -26,10 +27,8 @@
  * @tparam SimulatorType Class Simulator Type
  */
 template <class Matrix2x2Type>
-class NCU{
+class NCU {
     private:
-
-    std::unordered_set<std::string> default_gates {"X", "Y", "Z", "I", "H"};
     GateCache<Matrix2x2Type> gate_cache;
 
     protected:
@@ -41,7 +40,7 @@ class NCU{
      * 
      */
     NCU() {
-        gate_cache = GateCache<SimulatorType>(qSim);
+        gate_cache = GateCache<Matrix2x2Type>();
     };
 
     /**
@@ -59,7 +58,7 @@ class NCU{
      * @param U 
      */
     void initialiseMaps( std::size_t num_ctrl_lines){
-        gate_cache.initCache(num_ctrl_lines);
+        gate_cache.initCache( num_ctrl_lines );
     }
 
     /**
@@ -98,7 +97,7 @@ class NCU{
      * @param U Unitary matrix, U
      * @param depth Depth of recursion.
      */
-    void applyNQubitControl(SimulatorType& qSim, 
+    void applyNQubitControl(QubitRegister<Type>& qReg, 
             const std::vector<std::size_t> ctrlIndices,
             const std::vector<std::size_t> auxIndices,
             const unsigned int qTarget,
@@ -113,68 +112,70 @@ class NCU{
 
         // Assuming given a set of auxiliary qubits, utilise the qubits for better depth optimisation.
         if( (cOps >= 5) && ( auxIndices.size() >= cOps-2 ) && (gateLabel == "X") && (depth == 0) ){ //161 -> 60 2-qubit gate calls
-            qSim.applyGateCCX( ctrlIndices.back(), *(auxIndices.begin() + ctrlIndices.size() - 3), qTarget);
+            qReg.ApplyToffoli( ctrlIndices.back(), *(auxIndices.begin() + ctrlIndices.size() - 3), qTarget);
 
             for (std::size_t i = ctrlIndices.size()-2; i >= 2; i--){
-                qSim.applyGateCCX( *(ctrlIndices.begin()+i), *(auxIndices.begin() + (i-2)), *(auxIndices.begin() + (i-1)));
+                qReg.ApplyToffoli( *(ctrlIndices.begin()+i), *(auxIndices.begin() + (i-2)), *(auxIndices.begin() + (i-1)));
             }
-            qSim.applyGateCCX( *(ctrlIndices.begin()), *(ctrlIndices.begin()+1), *(auxIndices.begin()) );
+            qReg.ApplyToffoli( *(ctrlIndices.begin()), *(ctrlIndices.begin()+1), *(auxIndices.begin()) );
             
             for (std::size_t i = 2; i <= ctrlIndices.size()-2; i++){
-                qSim.applyGateCCX( *(ctrlIndices.begin()+i), *(auxIndices.begin()+(i-2)), *(auxIndices.begin()+(i-1)));
+                qReg.ApplyToffoli( *(ctrlIndices.begin()+i), *(auxIndices.begin()+(i-2)), *(auxIndices.begin()+(i-1)));
             }
-            qSim.applyGateCCX( ctrlIndices.back(), *(auxIndices.begin() + ctrlIndices.size() - 3), qTarget);
+            qReg.ApplyToffoli( ctrlIndices.back(), *(auxIndices.begin() + ctrlIndices.size() - 3), qTarget);
 
             for (std::size_t i = ctrlIndices.size()-2; i >= 2; i--){
-                qSim.applyGateCCX( *(ctrlIndices.begin()+i), *(auxIndices.begin() + (i-2)), *(auxIndices.begin() + (i-1)));
+                qReg.ApplyToffoli( *(ctrlIndices.begin()+i), *(auxIndices.begin() + (i-2)), *(auxIndices.begin() + (i-1)));
             }
-            qSim.applyGateCCX( *(ctrlIndices.begin()), *(ctrlIndices.begin()+1), *(auxIndices.begin()) );
+            qReg.ApplyToffoli( *(ctrlIndices.begin()), *(ctrlIndices.begin()+1), *(auxIndices.begin()) );
             for (std::size_t i = 2; i <= ctrlIndices.size()-2; i++){
-                qSim.applyGateCCX( *(ctrlIndices.begin()+i), *(auxIndices.begin()+(i-2)), *(auxIndices.begin()+(i-1)));
+                qReg.ApplyToffoli( *(ctrlIndices.begin()+i), *(auxIndices.begin()+(i-2)), *(auxIndices.begin()+(i-1)));
             }
         }
         // Optimisation for replacing 17 2-qubit with 13 2-qubit gate calls
         else if(cOps == 3){ 
             //Apply the 13 2-qubit gate calls
-            qSim.applyGateCU( gate_cache.gateCacheMap[gateLabel][local_depth+1].first, ctrlIndices[0], qTarget, gateLabel );
-            qSim.applyGateCX( ctrlIndices[0], ctrlIndices[1]);
+            qReg.ApplyControlled1QubitGate( ctrlIndices[0], qTarget, gate_cache.gateCacheMap[gateLabel][local_depth+1].first );
+            qReg.ApplyCPauliX( ctrlIndices[0], ctrlIndices[1]);
 
-            qSim.applyGateCU( gate_cache.gateCacheMap[gateLabel][local_depth+1].second, ctrlIndices[1], qTarget, gateLabel );
-            qSim.applyGateCX( ctrlIndices[0], ctrlIndices[1]);
+            qReg.ApplyControlled1QubitGate( ctrlIndices[1], qTarget, gate_cache.gateCacheMap[gateLabel][local_depth+1].second );
+            qReg.ApplyCPauliX( ctrlIndices[0], ctrlIndices[1]);
 
-            qSim.applyGateCU( gate_cache.gateCacheMap[gateLabel][local_depth+1].first, ctrlIndices[1], qTarget, gateLabel );
-            qSim.applyGateCX( ctrlIndices[1], ctrlIndices[2]);
+            qReg.ApplyControlled1QubitGate( ctrlIndices[1], qTarget, gate_cache.gateCacheMap[gateLabel][local_depth+1].first );
+            qReg.ApplyCPauliX( ctrlIndices[1], ctrlIndices[2]);
 
-            qSim.applyGateCU( gate_cache.gateCacheMap[gateLabel][local_depth+1].second, ctrlIndices[2], qTarget, gateLabel );
-            qSim.applyGateCX( ctrlIndices[0], ctrlIndices[2]);
+            qReg.ApplyControlled1QubitGate( ctrlIndices[2], qTarget, gate_cache.gateCacheMap[gateLabel][local_depth+1].second );
+            qReg.ApplyCPauliX( ctrlIndices[0], ctrlIndices[2]);
 
-            qSim.applyGateCU( gate_cache.gateCacheMap[gateLabel][local_depth+1].first, ctrlIndices[2], qTarget, gateLabel );
-            qSim.applyGateCX( ctrlIndices[1], ctrlIndices[2]);
+            qReg.ApplyControlled1QubitGate( ctrlIndices[2], qTarget, gate_cache.gateCacheMap[gateLabel][local_depth+1].first );
+            qReg.ApplyCPauliX( ctrlIndices[1], ctrlIndices[2]);
 
-            qSim.applyGateCU( gate_cache.gateCacheMap[gateLabel][local_depth+1].second, ctrlIndices[2], qTarget, gateLabel );
-            qSim.applyGateCX( ctrlIndices[0], ctrlIndices[2]);
+            qReg.ApplyControlled1QubitGate( ctrlIndices[2], qTarget, gate_cache.gateCacheMap[gateLabel][local_depth+1].second );
+            qReg.ApplyCPauliX( ctrlIndices[0], ctrlIndices[2]);
 
-            qSim.applyGateCU( gate_cache.gateCacheMap[gateLabel][local_depth+1].first, ctrlIndices[2], qTarget, gateLabel );
+            qReg.ApplyControlled1QubitGate( ctrlIndices[2], qTarget,  gate_cache.gateCacheMap[gateLabel][local_depth+1].first );
         }
         // Default quadratic decomposition from Barenco et al (1995)
         else if (cOps >= 2 && cOps !=3){
             std::vector<std::size_t> subCtrlIndices(ctrlIndices.begin(), ctrlIndices.end()-1);
 
-            qSim.applyGateCU( gate_cache.gateCacheMap[gateLabel][local_depth].first, ctrlIndices.back(), qTarget, gateLabel );
+            qReg.ApplyControlled1QubitGate( ctrlIndices.back(), qTarget, gate_cache.gateCacheMap[gateLabel][local_depth].first );
 
-            applyNQubitControl(qSim, subCtrlIndices, auxIndices, ctrlIndices.back(), "X", qSim.getGateX(), 0 );
+            applyNQubitControl(qReg, subCtrlIndices, auxIndices, ctrlIndices.back(), "X", qSim.getGateX(), 0 );
 
-            qSim.applyGateCU( gate_cache.gateCacheMap[gateLabel][local_depth].second, ctrlIndices.back(), qTarget, gateLabel );
+            qReg.ApplyControlled1QubitGate( ctrlIndices.back(), qTarget, gate_cache.gateCacheMap[gateLabel][local_depth].second );
 
-            applyNQubitControl(qSim, subCtrlIndices, auxIndices, ctrlIndices.back(), "X", qSim.getGateX(), 0 );
+            applyNQubitControl(qReg, subCtrlIndices, auxIndices, ctrlIndices.back(), "X", qSim.getGateX(), 0 );
 
-            applyNQubitControl(qSim, subCtrlIndices, auxIndices, qTarget, gateLabel, gate_cache.gateCacheMap[gateLabel][local_depth+1].first, local_depth );
+            applyNQubitControl(qReg, subCtrlIndices, auxIndices, qTarget, gateLabel, gate_cache.gateCacheMap[gateLabel][local_depth+1].first, local_depth );
         }
 
         // If the number of control qubits is less than 2, assume we have decomposed sufficiently
         else{
-            qSim.applyGateCU(gate_cache.gateCacheMap[gateLabel][depth].first, ctrlIndices[0], qTarget, gateLabel);
+            qReg.ApplyControlled1QubitGate( ctrlIndices[0], qTarget, gate_cache.gateCacheMap[gateLabel][depth].first );
         }
     }
+};
+
 };
 #endif
