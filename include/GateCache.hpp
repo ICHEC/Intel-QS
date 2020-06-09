@@ -18,6 +18,8 @@
 
 #include <mat_ops.hpp>
 
+#include "qureg.hpp"
+
 /**
  * @brief Class to cache intermediate matrix values used within other parts of the computation. 
  * Heavily depended upon by NCU to store sqrt matrix values following Barenco et al. (1995) decomposition.
@@ -27,6 +29,7 @@
 template <class Type>
 class GateCache {
     private:
+    //using GateType = TM2x2<Type>;
     std::size_t cache_depth;
 
     public:
@@ -55,7 +58,7 @@ class GateCache {
      * @param qReg The QubitRegister object
      * @param sqrt_depth The depth to which calculate sqrt matrices and their respective adjoints
      */
-    void initCache(QubitRegister& qReg, const std::size_t sqrt_depth){
+    void initCache(QubitRegister<Type>& qReg, const std::size_t sqrt_depth){
         // If we do not have a sufficient circuit depth, clear and rebuild up to given depth.
 
         if(cache_depth < sqrt_depth ){
@@ -87,12 +90,12 @@ class GateCache {
      * @param gate Gate matrix
      * @param max_depth Depth of calculations for sqrt and associate adjoints
      */
-    void addToCache(QubitRegister& qReg, const std::string gateLabel, const GateType& gate, std::size_t max_depth){
+    void addToCache(QubitRegister<Type>& qReg, const std::string gateLabel, const GateType& gate, std::size_t max_depth){
         if(max_depth <= cache_depth && gateCacheMap.find(gateLabel) != gateCacheMap.end() ){
             return;
         }
         else if(max_depth > cache_depth){
-            initCache(sim, max_depth);
+            initCache(qReg, max_depth);
         }
 
         std::vector< std::pair<GateType, GateType> > v;

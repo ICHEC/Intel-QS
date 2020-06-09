@@ -26,9 +26,10 @@ namespace ncu {
  * 
  * @tparam SimulatorType Class Simulator Type
  */
-template <class Matrix2x2Type>
+template <class Type>
 class NCU {
     private:
+    using Matrix2x2Type = TM2x2<Type>;
     GateCache<Matrix2x2Type> gate_cache;
 
     protected:
@@ -66,7 +67,7 @@ class NCU {
      * 
      * @param U 
      */
-    void addToMaps( std::string U_label, const Mat2x2Type& U, std::size_t num_ctrl_lines){
+    void addToMaps( std::string U_label, const Matrix2x2Type& U, std::size_t num_ctrl_lines){
         gate_cache.addToCache( U_label, U, num_ctrl_lines);
     }
 
@@ -102,7 +103,7 @@ class NCU {
             const std::vector<std::size_t> auxIndices,
             const unsigned int qTarget,
             const std::string gateLabel,
-            const Mat2x2Type& U,
+            const Matrix2x2Type& U,
             const std::size_t depth
     ){
         int local_depth = depth + 1;
@@ -161,11 +162,11 @@ class NCU {
 
             qReg.ApplyControlled1QubitGate( ctrlIndices.back(), qTarget, gate_cache.gateCacheMap[gateLabel][local_depth].first );
 
-            applyNQubitControl(qReg, subCtrlIndices, auxIndices, ctrlIndices.back(), "X", qSim.getGateX(), 0 );
+            applyNQubitControl(qReg, subCtrlIndices, auxIndices, ctrlIndices.back(), "X",  gate_cache.gateCacheMap["X"][0].first, 0 );
 
             qReg.ApplyControlled1QubitGate( ctrlIndices.back(), qTarget, gate_cache.gateCacheMap[gateLabel][local_depth].second );
 
-            applyNQubitControl(qReg, subCtrlIndices, auxIndices, ctrlIndices.back(), "X", qSim.getGateX(), 0 );
+            applyNQubitControl(qReg, subCtrlIndices, auxIndices, ctrlIndices.back(), "X", gate_cache.gateCacheMap["X"][0].first, 0 );
 
             applyNQubitControl(qReg, subCtrlIndices, auxIndices, qTarget, gateLabel, gate_cache.gateCacheMap[gateLabel][local_depth+1].first, local_depth );
         }

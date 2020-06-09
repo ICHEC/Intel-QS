@@ -185,7 +185,6 @@ class QubitRegister
 
   void ApplyCPhaseRotation(unsigned const qubit, unsigned const qubit2, BaseType theta);
 
-
   // Algorithms
   void ApplyNCU(TM2x2<Type> gate, const std::vector<unsigned>& ctrl_indices, const std::vector<unsigned>& aux_indices, unsigned const target);
 
@@ -293,8 +292,6 @@ class QubitRegister
   BaseType T_1_;	// T_1   given in terms of the chosen time unit
   BaseType T_2_;	// T_2   given in terms of the chosen time unit
   BaseType T_phi_;	// T_phi given in terms of the chosen time unit
-
-  NCU<Type> ncu;
 
   private:
     QubitRegister<Type>& operator=(const QubitRegister<Type>& src) { return *this; }
