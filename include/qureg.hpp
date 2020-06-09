@@ -186,7 +186,7 @@ class QubitRegister
   void ApplyCPhaseRotation(unsigned const qubit, unsigned const qubit2, BaseType theta);
 
   // Algorithms
-  void ApplyNCU(TM2x2<Type> gate, const std::vector<unsigned>& ctrl_indices, const std::vector<unsigned>& aux_indices, unsigned const target);
+  void ApplyNCU(TM2x2<Type> gate, const std::vector<std::size_t>& ctrl_indices, const std::vector<std::size_t>& aux_indices, unsigned const target);
 
   // fusion  
   void TurnOnFusion(unsigned log2llc = 20);

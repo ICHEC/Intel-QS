@@ -42,7 +42,7 @@ class GateCache {
     ~GateCache(){ clearCache(); }
 
     //Take the 2x2 matrix type from the template SimulatorType
-    using GateType = qhipster::TinyMatrix<Type, 2, 2, 32>;
+    using GateType = TM2x2<Type>;
 
     //Maintain a map for each gate label (X,Y,Z, etc.), and use vectors to store sqrt (indexed by 1/2^(i), and pairing matrix and adjoint)
     std::unordered_map<std::string, std::vector< std::pair<GateType, GateType> > > gateCacheMap;
