@@ -7,13 +7,7 @@
  * @date 2020-06-12
  */
 
-
 #include "../include/qureg.hpp"
-
-// The scope is applying a sequence of num_gates=40 gates to the quantum register.
-// The form of each gate is the same:
-//     controlled 1-qubit operation defined by the 2x2 matrix G
-// but each pair (control,target) for the involved qubit is randomly generated.
 
 /////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -75,9 +69,11 @@ int main(int argc, char **argv)
     {
         psi.EnableStatistics();
    
-        // Set num_qubits_compute-1 in compute reg to 1
+        // Apply a Hadamard gate to first num_qubits_compute-1
+        // qubits in the compute register.
         for(int qubit_id = 0; qubit_id < num_qubits_compute-1; qubit_id++){
-            psi.Apply1QubitGate(reg_compute[qubit_id], pauliX);
+            //psi.Apply1QubitGate(reg_compute[qubit_id], pauliX);
+            psi.ApplyHadamard(reg_compute[qubit_id]);
         }
 
         psi.Print("Before NCU");
@@ -87,7 +83,9 @@ int main(int argc, char **argv)
         std::size_t num_control_qubits = num_qubits_compute - 1;
         std::vector<std::size_t> control_ids(num_control_qubits);
 
-        for(int i = 0; i < num_control_qubits; i++){
+        // Set vector containing indices of the qubits acting as
+        // control for the NCU gate.
+        for(int std::size_t = 0; i < num_control_qubits; i++){
             control_ids[i] = reg_compute[i];
         }
 
@@ -96,6 +94,10 @@ int main(int argc, char **argv)
 
         // Apply NCU
         psi.ApplyNCU(pauliX, control_ids, reg_auxiliary, target_id);
+
+        // Observe only state with the first num_qubits_compute-1 
+        // qubits in the compute register set to 1 executes PauliX
+        // on the target qubit.
         psi.Print("After NCU");
     }
 }
