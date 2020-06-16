@@ -318,9 +318,9 @@ TEST_F(ApplyNCUGateTest, PauliZMultiState){
     ASSERT_NEAR( psi.GetGlobalAmplitude(init111001_).imag(), 0., accepted_error_);
 }
 
-/*
 //////////////////////////////////////////////////////////////////////////////
-//
+// Test expcted Failure of NCU if arbitrary
+// U that is not a Pauli matrix is passed.
 TEST_F(ApplyNCUGateTest, FailArbitraryU)
 {
 
@@ -331,10 +331,9 @@ TEST_F(ApplyNCUGateTest, FailArbitraryU)
 	U(1, 1) = {0.649564427121402, 0.373855203932477};
 	// |psi> = |1110>
 	QubitRegister<ComplexDP> psi (num_qubits_,"base",init111000_);
-        ASSERT_DEATH(psi.ApplyNCU(U, control_indices_, NULL, target_index_),"Gate not currently support for NCU:\*" );
+        ASSERT_DEATH(psi.ApplyNCU(U, control_indices_, auxiliary_indices_, target_index_),"Gate not currently support for NCU:*" );
 }
 
-*/
 //////////////////////////////////////////////////////////////////////////////
 
 #endif	// header guard APPLY_NCU_TEST_HPP
