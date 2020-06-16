@@ -75,8 +75,8 @@ int main(int argc, char **argv)
     {
         psi.EnableStatistics();
    
-        // Set all qubits in compute reg to 1
-        for(int qubit_id = 0; qubit_id < num_qubits_compute; qubit_id++){
+        // Set num_qubits_compute-1 in compute reg to 1
+        for(int qubit_id = 0; qubit_id < num_qubits_compute-1; qubit_id++){
             psi.Apply1QubitGate(reg_compute[qubit_id], pauliX);
         }
 
@@ -86,6 +86,7 @@ int main(int argc, char **argv)
         // Set qubit indices for qubits acting as control
         std::size_t num_control_qubits = num_qubits_compute - 1;
         std::vector<std::size_t> control_ids(num_control_qubits);
+
         for(int i = 0; i < num_control_qubits; i++){
             control_ids[i] = reg_compute[i];
         }
@@ -95,8 +96,6 @@ int main(int argc, char **argv)
 
         // Apply NCU
         psi.ApplyNCU(pauliX, control_ids, reg_auxiliary, target_id);
-
         psi.Print("After NCU");
-
     }
 }
