@@ -39,11 +39,9 @@ int main(int argc, char **argv)
     }
 
     // pauliX gate that will be applied in NCU
-    TM2x2<ComplexDP> pauliX;
-    pauliX(0, 0) = {0. , 0.};
-    pauliX(0, 1) = {1. , 0.};
-    pauliX(1, 0) = {1. , 0.};
-    pauliX(1, 1) = {0. , 0.};
+    ComplexDP zero = {0.,0.};
+    ComplexDP one = {1.,0.};
+    TM2x2<ComplexDP> pauliX{{zero,one,one,zero}};
 
     QubitRegister<ComplexDP> psi(num_qubits_compute);
     psi.Initialize("base", 0);
@@ -71,7 +69,7 @@ int main(int argc, char **argv)
    
         // Apply a Hadamard gate to first num_qubits_compute-1
         // qubits in the compute register.
-        for(int qubit_id = 0; qubit_id < num_qubits_compute-1; qubit_id++){
+        for(std::size_t qubit_id = 0; qubit_id < num_qubits_compute-1; qubit_id++){
             //psi.Apply1QubitGate(reg_compute[qubit_id], pauliX);
             psi.ApplyHadamard(reg_compute[qubit_id]);
         }
@@ -85,7 +83,7 @@ int main(int argc, char **argv)
 
         // Set vector containing indices of the qubits acting as
         // control for the NCU gate.
-        for(int std::size_t = 0; i < num_control_qubits; i++){
+        for(std::size_t i = 0; i < num_control_qubits; i++){
             control_ids[i] = reg_compute[i];
         }
 
