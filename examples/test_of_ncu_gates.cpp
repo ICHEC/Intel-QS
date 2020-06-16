@@ -1,5 +1,5 @@
 /**
- * @file ncu.hpp
+ * @file test_of_ncu_gates.cpp
  * @author Lee J. O'Riordan (lee.oriordan@ichec.ie)
  * @author Myles Doyle (myles.doyle@ichec.ie)
  * @brief Application to show functionality of ApplyNCU gate call.
